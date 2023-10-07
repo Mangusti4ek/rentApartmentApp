@@ -16,4 +16,8 @@ public interface UserApplicationRepository extends JpaRepository<UserApplication
     @Query(value = "SELECT u FROM UserApplicationEntity u WHERE u.nickName = :nickName")
     public List<UserApplicationEntity> getUserByNickName(String nickName);
 
+    public List<UserApplicationEntity> getUserApplicationEntitiesByTokenIsNotNull();
+
+    public UserApplicationEntity getUserApplicationEntityByToken(String authToken);
+
 }

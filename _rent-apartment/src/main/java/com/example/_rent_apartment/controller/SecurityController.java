@@ -1,6 +1,8 @@
 package com.example._rent_apartment.controller;
 
+import com.example._rent_apartment.dto.AuthUserDTO;
 import com.example._rent_apartment.dto.UserApplicationDTO;
+import com.example._rent_apartment.model.Security.AuthorizationResponse;
 import com.example._rent_apartment.service.SecurityService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -29,8 +31,8 @@ public class SecurityController {
 
     @PostMapping()
     @Operation(summary = "Авторизация пользователя")
-    public String authorization(@RequestBody UserApplicationDTO userApplicationDTO) {
-        return securityService.authorizationUser(userApplicationDTO);
+    public AuthorizationResponse authorization(@RequestBody AuthUserDTO authUserDTO) {
+        return securityService.authorizationUser(authUserDTO);
     }
 
 }

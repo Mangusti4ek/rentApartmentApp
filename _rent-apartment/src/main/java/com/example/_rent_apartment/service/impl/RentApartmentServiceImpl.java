@@ -4,7 +4,6 @@ import com.example._rent_apartment.application_exeption.ApartmentNonExistentExce
 import com.example._rent_apartment.dto.ApartmentInfoDTO;
 import com.example._rent_apartment.mapper.RentMapper;
 import com.example._rent_apartment.model.Security.UserApplicationEntity;
-import com.example._rent_apartment.model.Security.UserSessionApplication;
 import com.example._rent_apartment.model.entity.ApartmentInfoEntity;
 import com.example._rent_apartment.model.entity.BookingHistoryEntity;
 import com.example._rent_apartment.repository.AddressInfoRepository;
@@ -31,7 +30,6 @@ public class RentApartmentServiceImpl implements RentApartmentService {
     private final AddressInfoRepository addressInfoRepository;
     private final ApartmentInfoRepository apartmentInfoRepository;
     private final RentMapper rentMapper;
-    private final UserSessionApplication userSessionApplication;
     private final BookingHistoryRepository bookingHistoryRepository;
 
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -132,11 +130,11 @@ public class RentApartmentServiceImpl implements RentApartmentService {
     }
 
     @Override
-    public ApartmentInfoDTO bookingApartment(Long id, LocalDateTime start, LocalDateTime end) {
+    public ApartmentInfoDTO bookingApartment(String authToken,Long id, LocalDateTime start, LocalDateTime end) {
 
-        if (isNull(userSessionApplication.getLogin())) {
+        /*if (isNull(userSessionApplication.getLogin())) {
             return new ApartmentInfoDTO(BOOKING_ONLY_FOR_USERS);
-        }
+        }*/
         ApartmentInfoDTO apartmentByID = findApartmentByID(id);
 
         if (apartmentByID.getAvailable().equals(false)) {
@@ -145,7 +143,7 @@ public class RentApartmentServiceImpl implements RentApartmentService {
         }
         ApartmentInfoEntity apartmentEntityByID = prepareApartmentEntity(id);
 
-        List<UserApplicationEntity> userByLogin = userApplicationRepository.getUserByLogin(userSessionApplication.getLogin());
+        UserApplicationEntity userByLogin = userApplicationRepository.getUserApplicationEntityByToken(authToken);
 
         BookingHistoryEntity bookingHistoryEntity = prepareBookingHistory(apartmentEntityByID, userByLogin, start, end);
         bookingHistoryRepository.save(bookingHistoryEntity);
@@ -165,10 +163,10 @@ public class RentApartmentServiceImpl implements RentApartmentService {
         return apartmentEntityByID;
     }
 
-    private BookingHistoryEntity prepareBookingHistory(ApartmentInfoEntity apartmentEntityByID, List<UserApplicationEntity> userByLogin, LocalDateTime start, LocalDateTime end) {
+    private BookingHistoryEntity prepareBookingHistory(ApartmentInfoEntity apartmentEntityByID, UserApplicationEntity userByLogin, LocalDateTime start, LocalDateTime end) {
         BookingHistoryEntity bookingHistoryEntity = new BookingHistoryEntity();
         bookingHistoryEntity.setApartmentInfo(apartmentEntityByID);
-        bookingHistoryEntity.setUserApplication(userByLogin.get(0));
+        bookingHistoryEntity.setUserApplication(userByLogin);
         String startBooking = start.format(dateTimeFormatter);
         String endBooking = end.format(dateTimeFormatter);
         bookingHistoryEntity.setBookingStartDate(LocalDateTime.parse(startBooking, dateTimeFormatter));

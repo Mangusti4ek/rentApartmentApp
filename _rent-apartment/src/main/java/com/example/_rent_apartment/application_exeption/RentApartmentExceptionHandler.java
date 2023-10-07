@@ -15,4 +15,9 @@ public class RentApartmentExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponseDTO.toString());
     }
 
+    @ExceptionHandler(AuthException.class)
+    public ResponseEntity<?> nonValidToken(AuthException ex){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
 }

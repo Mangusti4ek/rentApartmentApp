@@ -14,6 +14,7 @@ public class ApplicationConstant {
     public static final String NICKNAME_ERROR = "Пользователь с таким ником уже существует";
     public static final String REGISTRATION_APPROVED = "Пользователь успешно зарегестрирован";
     public static final String AUTHORIZATION_APPROVED = "Успешная авторизация";
+    public static final String NON_VALID_TOKEN = "Войдите в систему";
     public static final String INCORRECT_PASSWORD = "Неверный пароль";
     public static final String INCORRECT_LOGIN = "Неверный логин";
     public static final String APARTMENT_NON_EXISTENT ="Квартира в данный момент недоступна";

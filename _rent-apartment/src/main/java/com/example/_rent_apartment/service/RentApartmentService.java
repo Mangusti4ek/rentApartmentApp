@@ -28,5 +28,5 @@ public interface RentApartmentService {
 
     ApartmentInfoDTO findApartmentByID(Long id);
 
-    ApartmentInfoDTO bookingApartment(Long id, LocalDateTime start, LocalDateTime end);
+    ApartmentInfoDTO bookingApartment(String authToken, Long id, LocalDateTime start, LocalDateTime end);
 }

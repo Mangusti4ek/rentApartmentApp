@@ -38,4 +38,7 @@ public class UserApplicationEntity {
 
     @Column(name = "commercial")
     private Boolean commercial;
+
+    @Column(name = "token")
+    private String token;
 }

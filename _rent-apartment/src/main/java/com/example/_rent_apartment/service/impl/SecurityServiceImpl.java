@@ -1,17 +1,21 @@
 package com.example._rent_apartment.service.impl;
 
+import com.example._rent_apartment.application_exeption.AuthException;
+import com.example._rent_apartment.dto.AuthUserDTO;
 import com.example._rent_apartment.dto.UserApplicationDTO;
 import com.example._rent_apartment.mapper.UserApplicationMapper;
+import com.example._rent_apartment.model.Security.AuthorizationResponse;
 import com.example._rent_apartment.model.Security.UserApplicationEntity;
-import com.example._rent_apartment.model.Security.UserSessionApplication;
 import com.example._rent_apartment.repository.UserApplicationRepository;
 import com.example._rent_apartment.service.SecurityService;
+import com.example._rent_apartment.service.UniqueTokenGenerateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 import static com.example._rent_apartment.constant.ApplicationConstant.*;
+import static java.util.Objects.isNull;
 
 @Service
 @RequiredArgsConstructor
@@ -19,7 +23,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     private final UserApplicationRepository userApplicationRepository;
     private final UserApplicationMapper userApplicationMapper;
-    private final UserSessionApplication userSessionApplication;
+    private final UniqueTokenGenerateService uniqueTokenGenerateService;
 
     @Override
     public String registrationNewUser(UserApplicationDTO userApplicationDTO, String commercial) {
@@ -39,20 +43,29 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public String authorizationUser(UserApplicationDTO userApplicationDTO) {
-        List<UserApplicationEntity> userByLogin = userApplicationRepository.getUserByLogin(userApplicationDTO.getLogin());
+    public AuthorizationResponse authorizationUser(AuthUserDTO authUserDTO) {
+        List<UserApplicationEntity> userByLogin = userApplicationRepository.getUserByLogin(authUserDTO.getLogin());
 
         if (userByLogin.isEmpty()) {
-            return INCORRECT_LOGIN;
+            throw new AuthException(INCORRECT_LOGIN);
         }
-
-        if (userApplicationDTO.getPassword().equals(Base64Service.decoder(userByLogin.get(0).getPassword()))) {
-            userSessionApplication.setLogin(userByLogin.get(0).getLogin());
-            userSessionApplication.setNickName(userByLogin.get(0).getNickName());
-            return AUTHORIZATION_APPROVED;
+        UserApplicationEntity userApplicationEntity = userByLogin.get(0);
+        if (authUserDTO.getPassword().equals(Base64Service.decoder(userApplicationEntity.getPassword()))) {
+            String token = uniqueTokenGenerateService.createToken();
+            userApplicationEntity.setToken(token);
+            userApplicationRepository.save(userApplicationEntity);
+            return new AuthorizationResponse(AUTHORIZATION_APPROVED,token);
         } else {
-            return INCORRECT_PASSWORD;
+            throw new AuthException(INCORRECT_PASSWORD);
         }
 
+    }
+
+    @Override
+    public void checkValidToken(String token) {
+        UserApplicationEntity user = userApplicationRepository.getUserApplicationEntityByToken(token);
+        if(isNull(user)){
+            throw new AuthException(NON_VALID_TOKEN);
+        }
     }
 }
