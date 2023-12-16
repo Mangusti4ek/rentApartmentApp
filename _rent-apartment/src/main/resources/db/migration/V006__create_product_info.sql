@@ -7,3 +7,8 @@ CREATE TABLE IF NOT EXISTS product_info
     discount        int4,
     season          varchar
 );
+
+INSERT INTO product_info
+values (1,'Осенняя скидка',10,'autumn'),
+       (2,'Скидка постонного клиента',5,null),
+       (3,'Скидка для командировачных',15,null);

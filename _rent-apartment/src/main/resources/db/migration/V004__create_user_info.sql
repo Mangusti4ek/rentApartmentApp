@@ -9,8 +9,12 @@ CREATE TABLE IF NOT EXISTS user_info
     login           varchar(255),
     nick_name       varchar(255),
     parent_city     varchar(255),
-    password         varchar(1000)
+    password         varchar(1000),
+    token varchar (100)
 );
+
+INSERT INTO user_info
+VALUES (1,0,false,'2023-12-09','MG@mail.ru1234', 'Mangust', 'Новокузнецк', 'MTM1MjQ2','706054e0-bb28-446e-bb1b-6e7a470a1845|2024-12-10T17:22:03.427539300');
 
 
 

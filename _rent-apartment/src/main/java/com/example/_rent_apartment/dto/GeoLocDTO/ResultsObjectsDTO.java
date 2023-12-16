@@ -1,4 +1,4 @@
-package com.example._rent_apartment.dto;
+package com.example._rent_apartment.dto.GeoLocDTO;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

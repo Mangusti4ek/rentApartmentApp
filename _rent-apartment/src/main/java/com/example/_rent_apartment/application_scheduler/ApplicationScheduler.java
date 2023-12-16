@@ -24,6 +24,7 @@ public class ApplicationScheduler {
         log.info("Планировщик начал свою работу " + LocalDateTime.now());
         List<UserApplicationEntity> userList = applicationRepository.getUserApplicationEntitiesByTokenIsNotNull();
         if(!userList.isEmpty()){
+            log.info("Текущих сессий " + userList.size());
             for(UserApplicationEntity user : userList){
                 String date = user.getToken().substring(37);
                 LocalDateTime timeToken = LocalDateTime.parse(date);
@@ -32,9 +33,10 @@ public class ApplicationScheduler {
                     applicationRepository.save(user);
                 }
             }
+        } else {
+            log.info("Текущих сессий не обнаружено");
         }
 
-        log.info("Текущих сессий не обнаружено");
 
     }
 

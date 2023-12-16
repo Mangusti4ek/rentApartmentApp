@@ -19,6 +19,7 @@ public class ApplicationConstant {
     public static final String INCORRECT_LOGIN = "Неверный логин";
     public static final String APARTMENT_NON_EXISTENT ="Квартира в данный момент недоступна";
     public static final String APARTMENT_BOOKING_SUCCESS = "Квартира успешно забронирована, дата заезда: ";
+    public static final String APARTMENT_BOOKING_SUCCESS_WITH_OUT = "Квартира успешно забронирована,без учета скидки. Расчет скидки будет отправлен вам в течении сукток. Дата заезда: ";
     public static final String APARTMENT_NOT_AVAILABLE = "Квартира недоступна для бронирования";
     public static final String BOOKING_ONLY_FOR_USERS = "Бронирование квартир доступно авторизированым пользователям";
     public static final String NON_AVAILABLE_APARTMENT_IN_LOCATION = "В локации отсутствуют доступные квартиры";
@@ -29,7 +30,8 @@ public class ApplicationConstant {
 
     /** Query constant */
 
-    public static final String GEO_LOC = "https://api.opencagedata.com1";
+    public static final String GEO_LOC = "https://api.opencagedata.com";
     public static final String RENT_PRODUCT = "http://localhost:9091";
+    public static final String TRANSLATOR = "https://dictionary.yandex.net";
 
 }

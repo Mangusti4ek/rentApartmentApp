@@ -7,7 +7,7 @@ import lombok.ToString;
 @ToString
 public class RegistrationApartmentForm {
     private Integer roomsCount;
-    private String price;
+    private Integer price;
 
     private String city;
 

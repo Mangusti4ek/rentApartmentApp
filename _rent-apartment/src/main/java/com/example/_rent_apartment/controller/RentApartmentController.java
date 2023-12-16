@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.example._rent_apartment.constant.ApplicationConstant.*;
@@ -19,11 +18,9 @@ import static java.util.Objects.isNull;
 public class RentApartmentController {
 
     private final RentApartmentService rentApartmentService;
-    private final GeolocService geolocService;
+    private final IntegrationManagerService geolocService;
     private final RentApartmentProductService rentApartmentProductService;
     private final SecurityService securityService;
-
-    public List<RegistrationApartmentForm> listApartment = new ArrayList<>();
 
     /**
      * Поиск апартаментов по фильтрам
@@ -32,9 +29,9 @@ public class RentApartmentController {
     public List<ApartmentInfoDTO> getApartmentByFilter(@RequestParam String city,
                                                        @RequestParam(required = false) Integer price,
                                                        @RequestParam(required = false) Integer roomAmount,
-                                                       @RequestParam(required = false) Integer overallRating) {
+                                                       @RequestParam(required = false) Double overallRating) {
 
-        return rentApartmentService.prepareFieldToCalc(city, price, roomAmount, overallRating);
+        return rentApartmentService.prepareFieldToCalc(city, price, roomAmount, overallRating); // разобраться с не работающим поиском по overallRating, проблема в том что присваивается значнеие в мапере при выгрузке. Переложить логику из мапера в планировщик?Scheduler
     }
 
     /**
@@ -57,11 +54,11 @@ public class RentApartmentController {
      * Регистрация новых апартаментов
      */
     @PostMapping(REGISTRATION_NEW_APARTMENT)
-    public List<RegistrationApartmentForm> registrationNewApartment(@RequestHeader String authToken,
+    public String registrationNewApartment(@RequestHeader String authToken,
                                                                     @RequestBody RegistrationApartmentForm apartmentForm) {
         securityService.checkValidToken(authToken);
-        listApartment.add(apartmentForm);
-        return listApartment;
+        rentApartmentService.registrationNewApartment(apartmentForm);
+        return "Апартаменты успешно зарегистрированы";
     }
 
     /**
