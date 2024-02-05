@@ -10,7 +10,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import static com.example._rent_apartment.constant.ApplicationConstant.RENT_PRODUCT;
+import static com.example._rent_apartment.constant.ApplicationConstant.API_GATEWAY;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +31,7 @@ public class RentApartmentProductServiceImpl implements RentApartmentProductServ
     }
 
     private String prepareRequestPath(String path){
-        IntegrationInfoEntity pathInfo = integrationInfoRepository.findById(RENT_PRODUCT)
+        IntegrationInfoEntity pathInfo = integrationInfoRepository.findById(API_GATEWAY)
                 .orElseThrow(() -> new NotFoundConfigIntegrationException());
 
         return String.format(pathInfo.getId() + pathInfo.getPathValue(), path);

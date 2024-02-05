@@ -31,7 +31,7 @@ public class ApplicationConstant {
     /** Query constant */
 
     public static final String GEO_LOC = "https://api.opencagedata.com";
-    public static final String RENT_PRODUCT = "http://localhost:9091";
+    public static final String API_GATEWAY = "http://localhost:9097";
     public static final String TRANSLATOR = "https://dictionary.yandex.net";
 
 }

@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS user_info
 );
 
 INSERT INTO user_info
-VALUES (1,0,false,'2023-12-09','MG@mail.ru1234', 'Mangust', 'Новокузнецк', 'MTM1MjQ2','706054e0-bb28-446e-bb1b-6e7a470a1845|2024-12-10T17:22:03.427539300');
+VALUES (1,0,false,'2023-12-09','alexeremeev7@gmail.com', 'Mangust', 'Новокузнецк', 'MTM1MjQ2','706054e0-bb28-446e-bb1b-6e7a470a1845|2024-12-10T17:22:03.427539300');
 
 
 

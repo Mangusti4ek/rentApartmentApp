@@ -2,11 +2,15 @@ package com.example._rent_apartment.controller;
 
 import com.example._rent_apartment.dto.ApartmentInfoDTO;
 import com.example._rent_apartment.model.RegistrationApartmentForm;
-import com.example._rent_apartment.service.*;
-import com.example._rent_apartment.service.impl.UniqueTokenGenerateServiceImpl;
+import com.example._rent_apartment.service.IntegrationManagerService;
+import com.example._rent_apartment.service.RentApartmentService;
+import com.example._rent_apartment.service.SecurityService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -17,10 +21,11 @@ import static java.util.Objects.isNull;
 @RequiredArgsConstructor
 public class RentApartmentController {
 
+    private Logger logger = LoggerFactory.getLogger(RentApartmentController.class);
     private final RentApartmentService rentApartmentService;
     private final IntegrationManagerService geolocService;
-    private final RentApartmentProductService rentApartmentProductService;
     private final SecurityService securityService;
+
 
     /**
      * Поиск апартаментов по фильтрам
@@ -46,7 +51,7 @@ public class RentApartmentController {
             return rentApartmentService.findApartmentByID(id);
         } else {
             securityService.checkValidToken(authToken);
-            return rentApartmentService.bookingApartment(authToken,id, start, end);
+            return rentApartmentService.bookingApartment(authToken, id, start, end);
         }
     }
 
@@ -55,7 +60,7 @@ public class RentApartmentController {
      */
     @PostMapping(REGISTRATION_NEW_APARTMENT)
     public String registrationNewApartment(@RequestHeader String authToken,
-                                                                    @RequestBody RegistrationApartmentForm apartmentForm) {
+                                           @RequestBody RegistrationApartmentForm apartmentForm) {
         securityService.checkValidToken(authToken);
         rentApartmentService.registrationNewApartment(apartmentForm);
         return "Апартаменты успешно зарегистрированы";
@@ -70,9 +75,15 @@ public class RentApartmentController {
         return geolocService.findApartmentByLoc(latitude, longitude);
     }
 
+    @GetMapping("/rent/get_report")
+    public String getReport(@RequestParam LocalDate month) {
+
+        return rentApartmentService.getReport(month);
+    }
+
     @GetMapping("/test")
-    public String getMessageFromMyService() {
-        UniqueTokenGenerateService uniqueTokenGenerateService = new UniqueTokenGenerateServiceImpl();
-        return uniqueTokenGenerateService.createToken();
+    public String getMessageFromMyService(@RequestParam String message) {
+        logger.info("RentApartmentController: ->getMessageFromMyService with param: " + message);
+        return message;
     }
 }

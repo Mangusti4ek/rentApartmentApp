@@ -4,6 +4,7 @@ import com.example._rent_apartment.dto.ApartmentInfoDTO;
 import com.example._rent_apartment.model.RegistrationApartmentForm;
 import com.example._rent_apartment.model.Security.UserApplicationEntity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -31,4 +32,5 @@ public interface RentApartmentService {
 
     ApartmentInfoDTO bookingApartment(String authToken, Long id, LocalDateTime start, LocalDateTime end);
     String registrationNewApartment(RegistrationApartmentForm registrationApartmentForm);
+    String getReport(LocalDate month);
 }

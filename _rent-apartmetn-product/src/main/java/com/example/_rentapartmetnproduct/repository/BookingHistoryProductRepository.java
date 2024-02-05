@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface BookingHistoryProductRepository extends JpaRepository<BookingHistoryProductEntity, Long> {
 
-    @Query(value = "SELECT b from BookingHistoryProductEntity b WHERE b.id = :id")
+    @Query(value = "SELECT b from BookingHistoryProductEntity b join fetch b.userApplication  join fetch b.apartmentInfo WHERE b.id = :id")
     public BookingHistoryProductEntity getBookingHistoryByID(Long id);
 }

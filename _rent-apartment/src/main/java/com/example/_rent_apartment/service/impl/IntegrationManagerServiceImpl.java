@@ -16,8 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import java.util.List;
 import java.util.stream.Collectors;
-import static com.example._rent_apartment.constant.ApplicationConstant.GEO_LOC;
-import static com.example._rent_apartment.constant.ApplicationConstant.RENT_PRODUCT;
+
+import static com.example._rent_apartment.constant.ApplicationConstant.*;
 import static com.example._rent_apartment.service.impl.Base64Service.decoder;
 import static java.util.Objects.isNull;
 
@@ -73,7 +73,7 @@ public class IntegrationManagerServiceImpl implements IntegrationManagerService 
     }
 
     private String prepareRequestPathForProduct(Long id){
-        IntegrationInfoEntity pathInfo = integrationInfoRepository.findById(RENT_PRODUCT)
+        IntegrationInfoEntity pathInfo = integrationInfoRepository.findById(API_GATEWAY)
                 .orElseThrow(() -> new NotFoundConfigIntegrationException());
 
         return String.format(pathInfo.getId() + pathInfo.getPathValue(),id);

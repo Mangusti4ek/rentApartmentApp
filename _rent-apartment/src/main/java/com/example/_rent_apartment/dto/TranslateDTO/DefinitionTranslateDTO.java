@@ -8,8 +8,9 @@ import java.util.List;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true, value = {"error"})
-public class TranslateResponseDTO {
+public class DefinitionTranslateDTO {
 
-    @JsonProperty("def")
-    private List<DefinitionTranslateDTO> definitions;
+    @JsonProperty("tr")
+    private List<TranslationDTO> tr;
+
 }

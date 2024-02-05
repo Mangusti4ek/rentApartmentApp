@@ -13,17 +13,27 @@ import com.example._rent_apartment.repository.ApartmentInfoRepository;
 import com.example._rent_apartment.repository.BookingHistoryRepository;
 import com.example._rent_apartment.repository.UserApplicationRepository;
 import com.example._rent_apartment.service.IntegrationManagerService;
+import com.example._rent_apartment.service.MessageSender;
 import com.example._rent_apartment.service.RentApartmentService;
+import com.example._rent_apartment.service.TranslateIntegrationService;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.example._rent_apartment.constant.ApplicationConstant.*;
-import static java.util.Objects.isNull;
 
 @Service
 @RequiredArgsConstructor
@@ -35,11 +45,14 @@ public class RentApartmentServiceImpl implements RentApartmentService {
     private final BookingHistoryRepository bookingHistoryRepository;
     private final IntegrationManagerService integrationManagerService;
     private final RentMapper rentMapper;
+    private final MessageSender messageSender;
+    private final TranslateIntegrationService translateIntegrationService;
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     @Override
     public List<ApartmentInfoDTO> getApartmentByCity(String city) {
-        return addressInfoRepository.getAddressInfoEntitiesByCity(city).stream()
+        List<AddressInfoEntity> addressInfoEntitiesByCity = addressInfoRepository.getAddressInfoEntitiesByCity(city);
+        return addressInfoEntitiesByCity.stream()
                 .map(a -> rentMapper.prepareApartmentResponse(a, a.getApartmentInfo()))
                 .collect(Collectors.toList());
     }
@@ -53,7 +66,8 @@ public class RentApartmentServiceImpl implements RentApartmentService {
 
     @Override
     public List<ApartmentInfoDTO> getAddressInfoEntitiesByCityAndPriceAndRoomAmount(String city, Integer price, Integer roomAmount) {
-        return addressInfoRepository.getAddressInfoEntitiesByCityAndPriceAndRoomAmount(city, price, roomAmount).stream()
+        List<AddressInfoEntity> addressInfoEntitiesByCityAndPriceAndRoomAmount = addressInfoRepository.getAddressInfoEntitiesByCityAndPriceAndRoomAmount(city, price, roomAmount);
+        return addressInfoEntitiesByCityAndPriceAndRoomAmount.stream()
                 .map(a -> rentMapper.prepareApartmentResponse(a, a.getApartmentInfo()))
                 .collect(Collectors.toList());
     }
@@ -94,34 +108,28 @@ public class RentApartmentServiceImpl implements RentApartmentService {
     }
 
     public List<ApartmentInfoDTO> prepareFieldToCalc(String city, Integer price, Integer roomAmount, Double overallRating) {
-        if (price != null || roomAmount != null || overallRating != null) {
-            if (price != null && roomAmount != null && overallRating != null) {
-                return getApartmentByAllFilter(city, price, roomAmount, overallRating);
+        city = translateIntegrationService.translate(city);
+        if (price != null && roomAmount != null && overallRating != null) {
+            return getApartmentByAllFilter(city, price, roomAmount, overallRating);
+        } else if (price != null) {
+            if (roomAmount != null) {
+                return getAddressInfoEntitiesByCityAndPriceAndRoomAmount(city, price, roomAmount);
+            } else if (overallRating != null) {
+                return getAddressInfoEntitiesByCityAndPriceAndRating(city, price, overallRating);
             } else {
-                if (price != null) {
-                    if (roomAmount != null) {
-                        return getAddressInfoEntitiesByCityAndPriceAndRoomAmount(city, price, roomAmount);
-                    } else {
-                        if (overallRating != null) {
-                            return getAddressInfoEntitiesByCityAndPriceAndRating(city, price, overallRating);
-                        } else {
-                            return getAddressInfoEntitiesByCityAndPrice(city, price);
-                        }
-                    }
-                } else if (overallRating != null) {
-                    if (roomAmount != null) {
-                        return getAddressInfoEntitiesByCityAndRoomAmountAndRating(city, roomAmount, overallRating);
-                    } else {
-                        return getAddressInfoEntitiesByCityAndRating(city, overallRating);
-                    }
-                } else if (roomAmount != null) {
-                    return getApartmentByCityAndRoomAmount(city, roomAmount);
-                }
+                return getAddressInfoEntitiesByCityAndPrice(city, price);
             }
+        } else if (overallRating != null) {
+            if (roomAmount != null) {
+                return getAddressInfoEntitiesByCityAndRoomAmountAndRating(city, roomAmount, overallRating);
+            } else {
+                return getAddressInfoEntitiesByCityAndRating(city, overallRating);
+            }
+        } else if (roomAmount != null) {
+            return getApartmentByCityAndRoomAmount(city, roomAmount);
         } else {
             return getApartmentByCity(city);
         }
-        throw new RuntimeException();
     }
 
     @Override
@@ -133,7 +141,7 @@ public class RentApartmentServiceImpl implements RentApartmentService {
     }
 
     @Override
-    public ApartmentInfoDTO bookingApartment(String authToken,Long id, LocalDateTime start, LocalDateTime end) {
+    public ApartmentInfoDTO bookingApartment(String authToken, Long id, LocalDateTime start, LocalDateTime end) {
 
         ApartmentInfoDTO apartmentByID = findApartmentByID(id);
 
@@ -150,8 +158,9 @@ public class RentApartmentServiceImpl implements RentApartmentService {
 
         try {
             integrationManagerService.prepareProductDiscount(bookingHistoryEntity.getId());
-        } catch (Exception ex){
+        } catch (Exception ex) {
             apartmentByID.setMessage(APARTMENT_BOOKING_SUCCESS_WITH_OUT + start);
+            messageSender.send(String.valueOf(bookingHistoryEntity.getId()));
             return apartmentByID;
         }
 
@@ -189,7 +198,7 @@ public class RentApartmentServiceImpl implements RentApartmentService {
         return "Апартаменты успешно зарегестрированы";
     }
 
-    private ApartmentInfoEntity prepareApartmentInfoEntityForRegistration(RegistrationApartmentForm registrationApartmentForm){
+    private ApartmentInfoEntity prepareApartmentInfoEntityForRegistration(RegistrationApartmentForm registrationApartmentForm) {
         ApartmentInfoEntity newApartment = new ApartmentInfoEntity();
         newApartment.setRoomAmount(registrationApartmentForm.getRoomsCount());
         newApartment.setPrice(registrationApartmentForm.getPrice());
@@ -199,11 +208,56 @@ public class RentApartmentServiceImpl implements RentApartmentService {
         newApartment.getAddressInfo().setApartmentInfo(newApartment);
         return newApartment;
     }
-    private AddressInfoEntity prepareAddressInfoForRegistration(RegistrationApartmentForm registrationApartmentForm){
+
+    private AddressInfoEntity prepareAddressInfoForRegistration(RegistrationApartmentForm registrationApartmentForm) {
         AddressInfoEntity addressInfoEntity = new AddressInfoEntity();
         addressInfoEntity.setStreet(registrationApartmentForm.getStreet());
         addressInfoEntity.setBuilding(registrationApartmentForm.getBuildingNumber());
         addressInfoEntity.setCity(registrationApartmentForm.getCity());
         return addressInfoEntity;
+    }
+
+    @Override
+    public String getReport(LocalDate month) {
+        LocalDate intervalReport = month.plusMonths(1);
+        List<BookingHistoryEntity> bookingList = bookingHistoryRepository.findAll();
+        File file = new File("D:\\JavaProjekts\\Learning\\_rent-apartment-application\\template\\report.xlsx");
+        try (FileInputStream fileInputStream = new FileInputStream(file);
+             XSSFWorkbook workBook = new XSSFWorkbook(fileInputStream)) {
+
+            XSSFSheet sheet = workBook.getSheetAt(0);
+            int count = 1;
+
+            for (BookingHistoryEntity b : bookingList) {
+
+                XSSFRow row = sheet.createRow(count++);
+                row.createCell(0).setCellValue(b.getBookingStartDate());
+                row.createCell(1).setCellValue(getBookingDays(b.getBookingStartDate(), b.getBookingEndDate()));
+                row.createCell(2).setCellValue(getBookingDays(b.getBookingStartDate(), b.getBookingEndDate()) * b.getApartmentInfo().getPrice());
+                row.createCell(3).setCellValue(getAddress(b));
+            }
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+            workBook.write(fileOutputStream);
+            fileOutputStream.flush();
+            fileOutputStream.close();
+            return "Успешно создано";
+        } catch (IOException e) {
+            throw new RuntimeException("Проблемы с формированием отчета");
+        }
+    }
+
+    private Long getBookingDays(LocalDateTime startDate, LocalDateTime endDate) {
+
+        Duration between = Duration.between(startDate, endDate);
+
+        return between.toDays();
+
+    }
+
+    private String getAddress(BookingHistoryEntity b) {
+
+        return b.getApartmentInfo().getAddressInfo().getStreet() + " " + b.getApartmentInfo().getAddressInfo().getBuilding();
+
+
     }
 }
